@@ -12,8 +12,16 @@ import (
 
 func Guard(secret string) gin.HandlerFunc {
 	return func(c *gin.Context) {
+		// Log request headers
+		// for name, values := range c.Request.Header {
+		// 	for _, value := range values {
+		// 		log.Printf("%s: %s", name, value)
+		// 	}
+		// }
+
 		// Extract token "Bearer xxx" from cookie
 		auth, err := c.Cookie("token")
+		log.Printf("Cookie value: %s", auth)
 		if err != nil {
 			log.Println("Token missing in cookie")
 			c.AbortWithStatus(http.StatusUnauthorized)
@@ -25,12 +33,12 @@ func Guard(secret string) gin.HandlerFunc {
 
 		token, err := verifyToken(tokenString, secret)
 		if err != nil {
-			log.Printf("Token verification failed: %v\\n", err)
+			log.Printf("Token verification failed: %v", err)
 			c.AbortWithStatus(http.StatusUnauthorized)
 			return
 		}
 
-		log.Printf("Token verified successfully. Claims: %+v\\n", token.Claims)
+		log.Printf("Token verified successfully. Claims: %+v", token.Claims)
 	}
 }
 

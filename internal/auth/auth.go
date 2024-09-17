@@ -8,17 +8,20 @@ import (
 )
 
 func CreateToken(username string, secret string) (string, error) {
-	var t *jwt.Token
+	// Set token to expire in 1 month (30 days)
+	expirationTime := time.Now().Add(30 * 24 * time.Hour)
 
-	t = jwt.NewWithClaims(jwt.SigningMethodHS256, &jwt.RegisteredClaims{
-		Audience:  jwt.ClaimStrings{username},
-		ExpiresAt: jwt.NewNumericDate(time.Now().Add(10 * time.Second)),
+	// Create the JWT token with the expiration time
+	t := jwt.NewWithClaims(jwt.SigningMethodHS256, &jwt.RegisteredClaims{
+		Audience:  jwt.ClaimStrings{username},         // The username
+		ExpiresAt: jwt.NewNumericDate(expirationTime), // Token expiration time set to 1 month
 	})
 
+	// Sign the token with the provided secret
 	signedToken, err := t.SignedString([]byte(secret))
 	if err != nil {
-		log.Println("error signing key")
-		return signedToken, err
+		log.Println("error signing token")
+		return "", err
 	}
 
 	return signedToken, nil

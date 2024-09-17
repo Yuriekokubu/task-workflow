@@ -3,8 +3,10 @@ package item
 import (
 	"errors"
 	"fmt"
+	"log"
 	"net/http"
 	"strconv"
+
 	"github.com/Yuriekokubu/workflow/internal/model"
 
 	"github.com/gin-gonic/gin"
@@ -54,15 +56,18 @@ func getValidationErrors(err error) []ApiError {
 }
 
 func (controller Controller) CreateItem(ctx *gin.Context) {
-	// Bind
+	// Bind JSON body to the request model
 	var request model.RequestItem
-
-	if err := ctx.Bind(&request); err != nil {
+	if err := ctx.BindJSON(&request); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{
-			"message": getValidationErrors(err),
+			"message": "Invalid request body",
+			"error":   err.Error(), // Log the error to understand what went wrong
 		})
 		return
 	}
+
+	// Log request body for debugging
+	log.Printf("Received request body: %+v", request)
 
 	// Create item
 	item, err := controller.Service.Create(request)
@@ -173,10 +178,14 @@ func (controller Controller) UpdateItemByID(ctx *gin.Context) {
 	var request model.RequestItem
 	if err := ctx.BindJSON(&request); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{
-			"message": getValidationErrors(err),
+			"message": "Invalid request body format",
+			"error":   err.Error(),
 		})
 		return
 	}
+
+	// Log the request body for debugging
+	fmt.Printf("Received request body: %+v\n", request)
 
 	// Update the item
 	item, err := controller.Service.UpdateItemByID(uint(id), request)
@@ -187,7 +196,8 @@ func (controller Controller) UpdateItemByID(ctx *gin.Context) {
 			})
 		} else {
 			ctx.JSON(http.StatusInternalServerError, gin.H{
-				"message": err.Error(),
+				"message": "Error updating item",
+				"error":   err.Error(),
 			})
 		}
 		return

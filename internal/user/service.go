@@ -2,9 +2,9 @@ package user
 
 import (
 	"errors"
-	"log"
 	"github.com/Yuriekokubu/workflow/internal/auth"
 	"github.com/Yuriekokubu/workflow/internal/model"
+	"log"
 
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
@@ -22,22 +22,22 @@ func NewService(db *gorm.DB, secret string) Service {
 	}
 }
 
-func (service Service) Login(req model.RequestLogin) (string, error) {
+func (service Service) Login(req model.RequestLogin) (string, uint, string, error) {
 	user, err := service.Repository.FindOneByUsername(req.Username)
 	if err != nil {
-		return "", errors.New("Invalid user or password")
+		return "", 0, "", errors.New("invalid user or password")
 	}
 
 	if ok := checkPasswordHash(req.Password, user.Password); !ok {
-		return "", errors.New("Invalid user or password")
+		return "", 0, "", errors.New("invalid user or password")
 	}
 
 	token, err := auth.CreateToken(user.Username, service.secret)
 	if err != nil {
 		log.Println("Fail to create token")
-		return "", errors.New("Something went wrong")
+		return "", 0, "", errors.New("something went wrong")
 	}
-	return token, nil
+	return user.Username, user.ID, token, nil
 }
 
 func checkPasswordHash(password, hash string) bool {

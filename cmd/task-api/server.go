@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -26,6 +27,18 @@ func init() {
 	} else {
 		log.Println("Loaded .env file successfully")
 	}
+
+	secret := os.Getenv("JWT_SECRET")
+	username := "admin" // The username for whom you are generating the token
+
+	// Call CreateToken to generate a JWT token
+	token, err := auth.CreateToken(username, secret)
+	if err != nil {
+		log.Fatalf("Failed to create token: %v", err)
+	}
+
+	// Print the generated token
+	fmt.Println("Generated JWT Token:", token)
 }
 
 func main() {
@@ -48,11 +61,22 @@ func main() {
 	userController := user.NewController(db, os.Getenv("JWT_SECRET"))
 
 	r := gin.Default()
-	config := cors.DefaultConfig()
-	config.AllowOrigins = []string{
-		"http://localhost:8000",
-		"http://127.0.0.1:8000",
+	config := cors.Config{
+		AllowOrigins: []string{
+			"http://localhost:3000",
+			"http://127.0.0.1:3000",
+			"http://localhost:8000",
+			"http://127.0.0.1:8000",
+			"http://localhost:8080",
+			"http://127.0.0.1:8080",
+		},
+		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
+		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization", "Accept"},
+		AllowCredentials: true,
+		ExposeHeaders:    []string{"Content-Length"},
+		MaxAge:           12 * time.Hour,
 	}
+
 	r.Use(cors.New(config))
 
 	items := r.Group("/items")
