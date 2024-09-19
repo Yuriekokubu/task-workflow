@@ -22,7 +22,6 @@ func NewController(db *gorm.DB, secret string) Controller {
 func (controller Controller) Login(ctx *gin.Context) {
 	var request model.RequestLogin
 
-	// Bind the request to the model
 	if err := ctx.Bind(&request); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{
 			"message": err.Error(),
@@ -30,7 +29,6 @@ func (controller Controller) Login(ctx *gin.Context) {
 		return
 	}
 
-	// Call the service to get the token
 	username, userID, token, err := controller.Service.Login(request)
 	if err != nil {
 		ctx.JSON(http.StatusUnauthorized, gin.H{
@@ -39,25 +37,46 @@ func (controller Controller) Login(ctx *gin.Context) {
 		return
 	}
 
-	// Log the token for debugging purposes
 	fmt.Println("Generated token:", token)
 
-	// Set the cookie with a more reasonable expiry and appropriate flags
 	ctx.SetCookie(
 		"token",
 		fmt.Sprintf("Bearer %s", token),
-		2592000,     // Cookie expiry time in seconds (1 hour here)
-		"/",         // Path
-		"localhost", // Domain (adjust as needed for production)
-		false,       // Secure flag (set to true in production with HTTPS)
-		true,        // HttpOnly flag to prevent client-side access
+		2592000,     
+		"/",         
+		"localhost", 
+		false,       
+		true,        
 	)
 
-	// Respond to the client
 	ctx.JSON(http.StatusOK, gin.H{
 		"message":  "Login succeeded",
 		"token":    token,
 		"username": username,
 		"userID":   userID,
+	})
+}
+
+func (controller Controller) Register(ctx *gin.Context) {
+	var request model.RequestRegister
+
+	if err := ctx.Bind(&request); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"message": err.Error(),
+		})
+		return
+	}
+
+	user, err := controller.Service.Register(request)
+	if err != nil {
+		ctx.JSON(http.StatusConflict, gin.H{
+			"message": err.Error(),
+		})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{
+		"message":  "Registration succeeded",
+		"username": user.Username,
 	})
 }

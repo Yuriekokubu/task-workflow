@@ -28,3 +28,7 @@ func (repo Repository) FindOneByUsername(username string) (model.User, error) {
 
 	return result, nil
 }
+
+func (repo Repository) Create(user model.User) error {
+	return repo.Database.Create(&user).Error
+}

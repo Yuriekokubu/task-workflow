@@ -12,25 +12,19 @@ import (
 
 func Guard(secret string) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		// Log request headers
-		// for name, values := range c.Request.Header {
-		// 	for _, value := range values {
-		// 		log.Printf("%s: %s", name, value)
-		// 	}
-		// }
-
-		// Extract token "Bearer xxx" from cookie
+		// Extract token from cookie
 		auth, err := c.Cookie("token")
-		log.Printf("Cookie value: %s", auth)
 		if err != nil {
-			log.Println("Token missing in cookie")
+			log.Println("Token missing in cookie:", err)
 			c.AbortWithStatus(http.StatusUnauthorized)
 			return
 		}
 
-		// Remove prefix "Bearer " from auth token
+		// Optionally remove "Bearer " prefix
 		tokenString := strings.TrimPrefix(auth, "Bearer ")
+		log.Printf("Token extracted: %s", tokenString)
 
+		// Verify the token
 		token, err := verifyToken(tokenString, secret)
 		if err != nil {
 			log.Printf("Token verification failed: %v", err)
@@ -38,7 +32,32 @@ func Guard(secret string) gin.HandlerFunc {
 			return
 		}
 
-		log.Printf("Token verified successfully. Claims: %+v", token.Claims)
+		claims, ok := token.Claims.(jwt.MapClaims)
+		if !ok || !token.Valid {
+			log.Println("Invalid token claims or token is not valid")
+			c.AbortWithStatus(http.StatusUnauthorized)
+			return
+		}
+
+		// Log all claims
+		log.Println("Token claims:", claims)
+
+		// Extract and convert userID from token claims
+		userIDFloat, ok := claims["userID"].(float64)
+		if !ok {
+			log.Println("userID not found in token claims or is not a valid type")
+			c.AbortWithStatus(http.StatusUnauthorized)
+			return
+		}
+
+		// Convert userID to uint (as you prefer userID to be uint)
+		userID := uint(userIDFloat)
+		log.Printf("Token verified successfully. UserID: %v", userID)
+
+		// Set userID in the context as uint
+		c.Set("user_id", userID)
+
+		c.Next()
 	}
 }
 

@@ -4,7 +4,7 @@ import "github.com/Yuriekokubu/workflow/internal/constant"
 
 type RequestItem struct {
 	Title    string `json:"title"`
-	Amount   int    `json:"amount"` // Adjust this to match the INTEGER type
+	Amount   int    `json:"amount"`
 	Quantity uint   `json:"quantity"`
 	OwnerID  uint   `json:"owner_id"`
 }

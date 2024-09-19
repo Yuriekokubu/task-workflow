@@ -1,22 +1,21 @@
+// main.go
 package main
 
 import (
-	"fmt"
 	"log"
 	"net/http"
 	"os"
 	"time"
 
-	"github.com/Yuriekokubu/workflow/internal/auth"
-	"github.com/Yuriekokubu/workflow/internal/item"
-	"github.com/Yuriekokubu/workflow/internal/user"
-	"github.com/Yuriekokubu/workflow/lib"
-	"github.com/Yuriekokubu/workflow/version"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
+
+	"github.com/Yuriekokubu/workflow/lib"
+	"github.com/Yuriekokubu/workflow/internal/middleware/LogMiddleware"
+	"github.com/Yuriekokubu/workflow/internal/routes"
 )
 
 func init() {
@@ -27,18 +26,6 @@ func init() {
 	} else {
 		log.Println("Loaded .env file successfully")
 	}
-
-	secret := os.Getenv("JWT_SECRET")
-	username := "admin" // The username for whom you are generating the token
-
-	// Call CreateToken to generate a JWT token
-	token, err := auth.CreateToken(username, secret)
-	if err != nil {
-		log.Fatalf("Failed to create token: %v", err)
-	}
-
-	// Print the generated token
-	fmt.Println("Generated JWT Token:", token)
 }
 
 func main() {
@@ -57,11 +44,11 @@ func main() {
 		log.Panic(err)
 	}
 
-	controller := item.NewController(db)
-	userController := user.NewController(db, os.Getenv("JWT_SECRET"))
+	db.AutoMigrate(&middleware.LogEntry{})
 
 	r := gin.Default()
-	config := cors.Config{
+
+	corsConfig := cors.Config{
 		AllowOrigins: []string{
 			"http://localhost:3000",
 			"http://127.0.0.1:3000",
@@ -77,39 +64,10 @@ func main() {
 		MaxAge:           12 * time.Hour,
 	}
 
-	r.Use(cors.New(config))
+	r.Use(cors.New(corsConfig))
+	r.Use(middleware.LogMiddleware(db))
 
-	items := r.Group("/items")
-	{
-		items.GET("/:id", controller.GetItemByID)
-		items.PUT("/:id", controller.UpdateItemByID)
-		items.PATCH("/:id", controller.UpdateItemStatus)
-		items.DELETE("/:id", controller.DeleteItem)
-		items.Use(auth.Guard(os.Getenv("JWT_SECRET")))
-		{
-			items.POST("", controller.CreateItem)
-			items.GET("", controller.FindItems)
-		}
-	}
-
-	r.GET("/version", func(c *gin.Context) {
-		versionID, err := version.GetLatestDBVersion(db)
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-			return
-		}
-		c.JSON(http.StatusOK, gin.H{"version": versionID})
-	})
-
-	r.POST("/login", userController.Login)
-
-	r.GET("/test", func(ctx *gin.Context) {
-		for i := 0; i < 10; i++ {
-			log.Println(1)
-			time.Sleep(1 * time.Second)
-		}
-		ctx.JSON(200, "test response")
-	})
+	routes.RegisterRoutes(r, db)
 
 	server := &http.Server{
 		Addr:    ":" + port,

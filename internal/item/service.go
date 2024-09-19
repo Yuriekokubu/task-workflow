@@ -38,16 +38,13 @@ func (service Service) Find(query model.RequestFindItem) ([]model.Item, error) {
 }
 
 func (service Service) UpdateStatus(id uint, status constant.ItemStatus) (model.Item, error) {
-	// Find item
 	item, err := service.Repository.FindByID(id)
 	if err != nil {
 		return model.Item{}, err
 	}
 
-	// Fill data
 	item.Status = status
 
-	// Replace
 	if err := service.Repository.Replace(item); err != nil {
 		return model.Item{}, err
 	}
@@ -65,21 +62,17 @@ func (service Service) FindByID(id uint) (model.Item, error) {
 }
 
 func (service Service) UpdateItemByID(id uint, req model.RequestItem) (model.Item, error) {
-	// Find the item by ID
 	item, err := service.Repository.FindByID(id)
 	if err != nil {
 		return model.Item{}, err
 	}
 
-	// Update the fields
 	item.Title = req.Title
 	item.Amount = req.Amount
 	item.Quantity = req.Quantity
 
-	// Set the status to "pending"
 	item.Status = constant.ItemPendingStatus
 
-	// Save the updated item
 	if err := service.Repository.Update(&item); err != nil {
 		return model.Item{}, err
 	}
@@ -88,16 +81,13 @@ func (service Service) UpdateItemByID(id uint, req model.RequestItem) (model.Ite
 }
 
 func (service Service) UpdateItemStatusByID(id uint, status constant.ItemStatus) (model.Item, error) {
-	// Find the item by ID
 	item, err := service.Repository.FindByID(id)
 	if err != nil {
 		return model.Item{}, err
 	}
 
-	// Update the status
 	item.Status = status
 
-	// Save the updated item
 	if err := service.Repository.Update(&item); err != nil {
 		return model.Item{}, err
 	}
@@ -106,13 +96,11 @@ func (service Service) UpdateItemStatusByID(id uint, status constant.ItemStatus)
 }
 
 func (service Service) DeleteItemByID(id uint) error {
-	// Find the item by ID to ensure it exists
 	item, err := service.Repository.FindByID(id)
 	if err != nil {
 		return err
 	}
 
-	// Delete the item
 	if err := service.Repository.Delete(&item); err != nil {
 		return err
 	}

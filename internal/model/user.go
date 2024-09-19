@@ -3,8 +3,12 @@ package model
 type User struct {
 	ID       uint   `json:"id" gorm:"primaryKey"`
 	Username string `json:"username"`
-	// hashed password
 	Password string
+}
+
+type RequestRegister struct {
+	Username string `json:"username" binding:"required"`
+	Password string `json:"password" binding:"required"`
 }
 
 func (u User) Exists() bool {
