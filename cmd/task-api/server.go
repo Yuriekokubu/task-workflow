@@ -1,4 +1,3 @@
-// main.go
 package main
 
 import (
@@ -13,9 +12,9 @@ import (
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 
-	"github.com/Yuriekokubu/workflow/lib"
 	"github.com/Yuriekokubu/workflow/internal/middleware/LogMiddleware"
 	"github.com/Yuriekokubu/workflow/internal/routes"
+	"github.com/Yuriekokubu/workflow/lib"
 )
 
 func init() {
@@ -67,8 +66,10 @@ func main() {
 	r.Use(cors.New(corsConfig))
 	r.Use(middleware.LogMiddleware(db))
 
-	routes.RegisterRoutes(r, db)
+	routes.RegisterUserRoutes(r, db)
+	routes.RegisterItemRoutes(r, db)
 
+	// Set up the HTTP server
 	server := &http.Server{
 		Addr:    ":" + port,
 		Handler: r,
