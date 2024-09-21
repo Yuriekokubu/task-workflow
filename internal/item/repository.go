@@ -62,15 +62,12 @@ func (repo Repository) Delete(item *model.Item) error {
 func (repo Repository) UpdateItemStatusByID(id uint, status constant.ItemStatus) (model.Item, error) {
 	var item model.Item
 
-	// Find the item by ID
 	if err := repo.Database.First(&item, id).Error; err != nil {
 		return model.Item{}, err
 	}
 
-	// Update the status
 	item.Status = status
 
-	// Save the updated item
 	if err := repo.Database.Save(&item).Error; err != nil {
 		return model.Item{}, err
 	}

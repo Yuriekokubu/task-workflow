@@ -13,5 +13,5 @@ type Item struct {
 	Quantity  uint                `json:"quantity"`
 	Status    constant.ItemStatus `json:"status"`
 	OwnerID   uint                `json:"owner_id"`
-	UpdatedAt time.Time           `json:"updated_at"` // Add this line
+	UpdatedAt time.Time           `json:"updated_at"`
 }
