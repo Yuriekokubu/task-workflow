@@ -1,8 +1,8 @@
 package item
 
 import (
-	"github.com/Yuriekokubu/workflow/internal/model"
 	"github.com/Yuriekokubu/workflow/internal/constant"
+	"github.com/Yuriekokubu/workflow/internal/model"
 
 	"gorm.io/gorm"
 )
@@ -76,4 +76,8 @@ func (repo Repository) UpdateItemStatusByID(id uint, status constant.ItemStatus)
 	}
 
 	return item, nil
+}
+
+func (repo Repository) DeleteByIDs(ids []uint) error {
+	return repo.Database.Where("id IN (?)", ids).Delete(&model.Item{}).Error
 }

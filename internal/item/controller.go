@@ -31,7 +31,7 @@ type ApiError struct {
 func msgForTag(tag, param string) string {
 	switch tag {
 	case "required":
-		return "จำเป็นต้องกรอกข้อมูลนี้" 
+		return "จำเป็นต้องกรอกข้อมูลนี้"
 	case "email":
 		return "Invalid email"
 	case "gt":
@@ -77,7 +77,6 @@ func handleServiceError(ctx *gin.Context, err error, notFoundMessage string) {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
 	}
 }
-
 
 func (controller *Controller) CreateItem(ctx *gin.Context) {
 	var request model.RequestItem
@@ -224,4 +223,21 @@ func (controller *Controller) DeleteItem(ctx *gin.Context) {
 	}
 
 	respondSuccess(ctx, "Item deleted successfully")
+}
+
+func (controller *Controller) DeleteItems(ctx *gin.Context) {
+	var request model.RequestDeleteItems
+	if err := ctx.ShouldBindJSON(&request); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"message": "Invalid request body"})
+		return
+	}
+
+	for _, id := range request.IDs {
+		if err := controller.Service.DeleteItemByID(id); err != nil {
+			ctx.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
+			return
+		}
+	}
+
+	respondSuccess(ctx, "Items deleted successfully")
 }

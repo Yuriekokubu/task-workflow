@@ -6,8 +6,8 @@ import (
 	"os"
 	"time"
 
-	"github.com/Yuriekokubu/workflow/internal/middleware/auth"
 	"github.com/Yuriekokubu/workflow/internal/item"
+	"github.com/Yuriekokubu/workflow/internal/middleware/auth"
 	"github.com/Yuriekokubu/workflow/internal/user"
 	"github.com/Yuriekokubu/workflow/version"
 	"github.com/gin-gonic/gin"
@@ -25,10 +25,11 @@ func RegisterRoutes(r *gin.Engine, db *gorm.DB) {
 		items.PATCH("/:id", itemController.UpdateItemStatus)
 		items.DELETE("/:id", itemController.DeleteItem)
 		items.Use(auth.Guard(os.Getenv("JWT_SECRET")))
-
 		{
 			items.POST("", itemController.CreateItem)
 			items.GET("", itemController.FindItems)
+			items.DELETE("/delete", itemController.DeleteItems)
+
 		}
 	}
 
@@ -42,7 +43,7 @@ func RegisterRoutes(r *gin.Engine, db *gorm.DB) {
 	})
 
 	r.POST("/login", userController.Login)
-	r.POST("/register", userController.Register)
+	r.POST("/signup", userController.Register)
 
 	r.GET("/test", func(ctx *gin.Context) {
 		for i := 0; i < 10; i++ {

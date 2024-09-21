@@ -21,3 +21,7 @@ type RequestLogin struct {
 	Username string `binding:"required"`
 	Password string `binding:"required"`
 }
+
+type RequestDeleteItems struct {
+	IDs []uint `json:"ids" binding:"required"`
+}

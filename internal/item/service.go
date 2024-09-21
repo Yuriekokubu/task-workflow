@@ -107,3 +107,18 @@ func (service Service) DeleteItemByID(id uint) error {
 
 	return nil
 }
+
+func (service Service) DeleteItemsByIDs(ids []uint) error {
+	for _, id := range ids {
+		item, err := service.Repository.FindByID(id)
+		if err != nil {
+			return err
+		}
+
+		if err := service.Repository.Delete(&item); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
